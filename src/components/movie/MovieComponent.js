@@ -20,7 +20,6 @@ export default class MovieComponent extends CustomComponent {
                   <p class="item-title">${title}</p>
                   <p class="item-score"><img src=${StarFilledImg} alt="별점" /> ${voteAverage}</p>
               </div>
-            </a>
         `;
   }
 }

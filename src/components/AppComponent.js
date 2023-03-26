@@ -71,12 +71,16 @@ export default class AppComponent extends CustomComponent {
       });
   }
 
-  checkPage() {
-    if (this.#totalPage < this.#nextPage) {
+  changeButtonDisplayByPage() {
+    if (this.isEndOfPage()) {
       this.querySelector("more-button").classList.add("hide");
       return;
     }
     this.querySelector("more-button").classList.remove("hide");
+  }
+
+  isEndOfPage() {
+    return this.#totalPage <= this.#nextPage;
   }
 
   searchListInit() {
@@ -160,6 +164,7 @@ export default class AppComponent extends CustomComponent {
     });
 
     window.addEventListener("scroll", () => {
+      if (this.isEndOfPage()) return;
       this.toggleUpScrollButton();
       if (!this.#scrollThrottleId) {
         this.#scrollThrottleId = setTimeout(() => {

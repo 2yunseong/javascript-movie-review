@@ -9,7 +9,9 @@ import UpScrollButtonComponent from "./element/UpScrollButtonComponent";
 import transformMovieItemsType from "../util/MovieList";
 import {
   ACTION,
+  ERROR_MESSAGE,
   REQUEST_URL,
+  SCROLL_INVOKE_GAP,
   SEARCH_WARNING,
   TITLE,
 } from "../constants/constants";
@@ -125,10 +127,10 @@ export default class AppComponent extends CustomComponent {
           this.#$movieList.appendNewPage();
           this.getMovieData(ACTION.SEARCH);
           break;
-        case "up-scroll":
+        case ACTION.UP_SCROLL:
           window.scroll({ top: 0, behavior: "smooth" });
           break;
-        case "detail":
+        case ACTION.DETAIL:
           const movieId = e.target.dataset.movieId;
           getRequest(
             `${REQUEST_URL}/movie/${movieId}?api_key=${API_KEY}&language=ko-KR`
@@ -140,8 +142,8 @@ export default class AppComponent extends CustomComponent {
               modal.style.display = "flex";
               document.body.style.overflow = "hidden";
             })
-            .catch((err) => {
-              alert("에러가 발생했습니다. 잠시 후에 다시 시도해주세요.");
+            .catch(() => {
+              alert(ERROR_MESSAGE);
             });
           break;
       }
@@ -165,6 +167,7 @@ export default class AppComponent extends CustomComponent {
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         const modalComponent = document.querySelector("modal-component");
+
         modalComponent.style.display = "none";
         document.body.style.overflow = "visible";
       }
@@ -172,10 +175,15 @@ export default class AppComponent extends CustomComponent {
 
     window.addEventListener("scroll", () => {
       if (this.isEndOfPage()) return;
+
       this.toggleUpScrollButton();
+
       if (!this.#scrollThrottleId) {
         this.#scrollThrottleId = setTimeout(() => {
-          if (this.getBoundingClientRect().bottom - window.innerHeight < 150) {
+          if (
+            this.getBoundingClientRect().bottom - window.innerHeight <
+            SCROLL_INVOKE_GAP
+          ) {
             this.#$movieList.appendNewPage();
             this.getMovieData(ACTION.POPULAR);
           }

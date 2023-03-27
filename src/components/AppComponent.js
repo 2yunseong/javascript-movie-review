@@ -39,36 +39,23 @@ export default class AppComponent extends CustomComponent {
     this.changeMoreButtonAction(ACTION.MORE_POPULAR);
   }
 
-  urlByActionType(actionType) {
-    switch (actionType) {
-      case ACTION.POPULAR:
-        return `${REQUEST_URL}/movie/popular?api_key=${API_KEY}&language=ko-KR&page=${
-          this.#nextPage
-        }`;
-      case ACTION.SEARCH:
-        return `${REQUEST_URL}/search/movie?api_key=${API_KEY}&language=ko-KR&query=${
-          this.#$searchInput.value
-        }&page=${this.#nextPage}&include_adult=false`;
-    }
-  }
-
   getMovieData(actionType) {
-    fetch(this.urlByActionType(actionType), { method: "GET" })
-      .then(async (res) => {
-        if (res.ok) {
-          const data = await res.json();
-          this.#totalPage = data.total_pages;
-
-          const movieItems = transformMovieItemsType(data.results);
-          this.#$movieList.renderPageSuccess(movieItems);
-
-          this.#nextPage += 1;
-          this.checkPage();
-        } else {
-          this.#$movieList.renderPageFail();
-        }
+    getRequest(
+      urlByActionType(actionType, {
+        nextPage: this.#nextPage,
+        query: this.#$searchInput.value,
       })
-      .catch((error) => {
+    )
+      .then((res) => {
+        const data = transData(res);
+        this.#$movieList.renderPageSuccess(data.results);
+
+        this.#nextPage += 1;
+        this.#totalPage = data.totalPage;
+
+        this.changeButtonDisplayByPage();
+      })
+      .catch(() => {
         this.#$movieList.renderPageFail();
       });
   }
@@ -115,6 +102,10 @@ export default class AppComponent extends CustomComponent {
           this.changeMoreButtonAction(ACTION.MORE_POPULAR);
           break;
         case ACTION.SEARCH:
+          if (!this.#$searchInput.value.trim()) {
+            alert(SEARCH_WARNING);
+            return;
+          }
           this.searchListInit();
           this.getMovieData(ACTION.SEARCH);
           this.changeMoreButtonAction(ACTION.MORE_SEARCH);
@@ -153,7 +144,7 @@ export default class AppComponent extends CustomComponent {
       if (e.key === "Enter") {
         e.preventDefault();
 
-        if (!this.#$searchInput.value) {
+        if (!this.#$searchInput.value.trim()) {
           alert(SEARCH_WARNING);
           return;
         }
